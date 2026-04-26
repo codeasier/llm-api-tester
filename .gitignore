@@ -1,0 +1,13 @@
+node_modules/
+dist/
+target/
+src-tauri/target/
+.pnpm-store/
+.pnpm-home/
+.cargo-home/
+.superpowers/
+.features/
+.DS_Store
+*.log
+coverage/
+.vitest/
