@@ -132,8 +132,8 @@ export default function ProviderForm({ onClose, initial, mode = "create" }: Prop
     "inline-flex items-center gap-1 rounded-lg border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-2 text-sm font-medium text-[var(--text-secondary)] transition hover:border-[var(--border-default)] hover:bg-[var(--bg-muted)]";
 
   return (
-    <div className="w-[520px] rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-2xl shadow-[rgb(var(--shadow-strong)/0.1)]">
-      <div className="mb-5 flex items-center justify-between">
+    <div className="flex max-h-[calc(100vh-4rem)] w-[520px] flex-col overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-2xl shadow-[rgb(var(--shadow-strong)/0.1)]">
+      <div className="flex items-center justify-between border-b border-[var(--border-default)] px-5 py-4">
         <div>
           <h2 className="text-base font-semibold text-[var(--text-primary)]">{title}</h2>
           <p className="mt-1 text-xs text-[var(--text-muted)]">{t("providerForm.subtitle")}</p>
@@ -146,7 +146,7 @@ export default function ProviderForm({ onClose, initial, mode = "create" }: Prop
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
         <div>
           <label className={labelCls}>{t("providerForm.name")}</label>
           <input
@@ -238,7 +238,7 @@ export default function ProviderForm({ onClose, initial, mode = "create" }: Prop
         </div>
       </div>
 
-      <div className="mt-6 flex justify-end gap-2 border-t border-[var(--border-default)] pt-4">
+      <div className="flex justify-end gap-2 border-t border-[var(--border-default)] bg-[var(--bg-surface)] px-5 py-4">
         <button
           onClick={onClose}
           type="button"

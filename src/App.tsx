@@ -90,7 +90,7 @@ export default function App() {
   return (
     <div className="flex h-screen bg-[var(--bg-app)] text-[var(--text-primary)]">
       {providerDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-overlay)] p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[var(--bg-overlay)] p-4 py-8 backdrop-blur-sm">
           <ProviderForm
             mode={providerDialog.mode}
             initial={providerDialog.mode === "create" ? undefined : providerDialog.provider}

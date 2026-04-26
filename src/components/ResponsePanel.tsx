@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle, Loader2, XCircle } from "lucide-react";
 import { useI18n } from "../i18n";
 import type { CheckResult } from "../stores/appStore";
@@ -46,7 +46,12 @@ export default function ResponsePanel({
     <div className="flex h-full flex-col bg-[var(--bg-surface)]">
       <div className="flex items-center gap-3 border-b border-[var(--border-default)] px-4 py-3">
         <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">{t("responsePanel.title")}</span>
-        {running && <Loader2 size={14} className="animate-spin text-[var(--accent)]" />}
+        {running && (
+          <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
+            <Loader2 size={12} className="animate-spin" />
+            {t("responsePanel.waiting")}
+          </span>
+        )}
         {statusCode != null && (
           <span
             className={`rounded-md px-2 py-1 text-xs font-mono ${
@@ -56,7 +61,7 @@ export default function ResponsePanel({
             {statusCode}
           </span>
         )}
-        {duration != null && <span className="text-xs text-[var(--text-muted)]">{duration}ms</span>}
+        {!running && duration != null && <span className="text-xs text-[var(--text-muted)]">{duration}ms</span>}
         {compatResults.length > 0 && (
           <div className="ml-auto flex items-center gap-2 text-xs font-medium">
             <span className="text-emerald-600">{passCount}P</span>

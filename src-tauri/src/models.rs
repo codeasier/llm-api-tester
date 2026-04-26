@@ -198,10 +198,18 @@ pub struct StreamChunkEvent {
     pub event_type: String,
     pub raw_data: String,
 }
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StreamDoneEvent {
     pub run_id: String,
     pub normalized_response: NormalizedResponse,
     pub compat_results: Vec<CheckResult>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestErrorEvent {
+    pub run_id: String,
+    pub error: String,
+    pub status_code: Option<u16>,
+    pub raw_response: Option<String>,
+    pub parsed_output: Option<String>,
 }

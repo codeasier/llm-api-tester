@@ -29,6 +29,13 @@ pub struct ExecuteRequestInput {
     pub matrix_run_id: Option<String>,
 }
 
+struct RequestFailure {
+    status_code: Option<u16>,
+    error: String,
+    raw_response: Option<String>,
+    parsed_output: Option<String>,
+}
+
 impl RunnerState {
     pub fn new() -> Self {
         RunnerState {
@@ -78,7 +85,13 @@ pub async fn execute_request(
         Err(e) => {
             let _ = app.emit(
                 "request-error",
-                serde_json::json!({"run_id": run_id, "error": e}),
+                RequestErrorEvent {
+                    run_id,
+                    error: e,
+                    status_code: None,
+                    raw_response: None,
+                    parsed_output: None,
+                },
             );
             return;
         }
@@ -96,7 +109,13 @@ pub async fn execute_request(
         Err(e) => {
             let _ = app.emit(
                 "request-error",
-                serde_json::json!({"run_id": run_id, "error": e}),
+                RequestErrorEvent {
+                    run_id,
+                    error: e,
+                    status_code: None,
+                    raw_response: None,
+                    parsed_output: None,
+                },
             );
             return;
         }
@@ -121,7 +140,16 @@ pub async fn execute_request(
                 stream, compat_results: None, created_at: now_str,
             };
             let _ = db.save_run(&run);
-            let _ = app.emit("request-error", serde_json::json!({"run_id": run_id, "error": "Cancelled"}));
+            let _ = app.emit(
+                "request-error",
+                RequestErrorEvent {
+                    run_id: run_id.clone(),
+                    error: "Cancelled".into(),
+                    status_code: None,
+                    raw_response: None,
+                    parsed_output: None,
+                },
+            );
             runner.tokens.lock().await.remove(&run_id);
             return;
         }
@@ -129,9 +157,33 @@ pub async fn execute_request(
     };
 
     let duration = start.elapsed().as_millis() as u64;
-    let (status_code, error_msg, response_raw, normalized) = match result {
-        Ok((sc, raw, norm)) => (Some(sc), None, Some(raw), Some(norm)),
-        Err(e) => (None, Some(e), None, None),
+    let (status_code, error_msg, response_raw, normalized, failure_event) = match result {
+        Ok((sc, raw, norm)) => (Some(sc), None, Some(raw), Some(norm), None),
+        Err(failure) => (
+            failure.status_code,
+            Some(failure.error.clone()),
+            failure.raw_response.clone(),
+            failure
+                .parsed_output
+                .as_ref()
+                .map(|parsed_output| NormalizedResponse {
+                    id: None,
+                    model: None,
+                    content: parsed_output.clone(),
+                    finish_reason: None,
+                    usage: None,
+                    raw_body: failure.raw_response.clone().unwrap_or_default(),
+                    response_body: failure.raw_response.clone(),
+                    stream_events: vec![],
+                }),
+            Some(RequestErrorEvent {
+                run_id: run_id.clone(),
+                error: failure.error,
+                status_code: failure.status_code,
+                raw_response: failure.raw_response,
+                parsed_output: failure.parsed_output,
+            }),
+        ),
     };
 
     let compat = crate::compat::run_checks(
@@ -172,6 +224,10 @@ pub async fn execute_request(
         );
     }
 
+    if let Some(failure_event) = failure_event {
+        let _ = app.emit("request-error", failure_event);
+    }
+
     runner.tokens.lock().await.remove(&run_id);
 }
 
@@ -182,20 +238,48 @@ async fn execute_inner(
     adapter: &dyn ProtocolAdapter,
     app: &tauri::AppHandle,
     run_id: &str,
-) -> Result<(u16, String, NormalizedResponse), String> {
+) -> Result<(u16, String, NormalizedResponse), RequestFailure> {
     let resp = client
         .post(&spec.url)
         .headers(spec.headers.clone())
         .json(&spec.body)
         .send()
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| RequestFailure {
+            status_code: None,
+            error: e.to_string(),
+            raw_response: None,
+            parsed_output: None,
+        })?;
 
     let status = resp.status().as_u16();
 
     if !stream {
-        let body = resp.text().await.map_err(|e| e.to_string())?;
-        let parsed = adapter.parse_response(status, &body)?;
+        let body = resp.text().await.map_err(|e| RequestFailure {
+            status_code: Some(status),
+            error: e.to_string(),
+            raw_response: None,
+            parsed_output: None,
+        })?;
+
+        if status >= 400 {
+            let formatted_body = format_response_body(&body);
+            return Err(RequestFailure {
+                status_code: Some(status),
+                error: extract_error_message(&body).unwrap_or_else(|| format!("HTTP {status}")),
+                raw_response: Some(formatted_body.clone()),
+                parsed_output: extract_error_output(&body),
+            });
+        }
+
+        let parsed = adapter
+            .parse_response(status, &body)
+            .map_err(|error| RequestFailure {
+                status_code: Some(status),
+                error,
+                raw_response: Some(format_response_body(&body)),
+                parsed_output: extract_error_output(&body),
+            })?;
         return Ok((status, body, parsed));
     }
 
@@ -209,7 +293,12 @@ async fn execute_inner(
     let mut current_event_type = String::new();
 
     while let Some(chunk) = event_stream.next().await {
-        let chunk = chunk.map_err(|e| e.to_string())?;
+        let chunk = chunk.map_err(|e| RequestFailure {
+            status_code: Some(status),
+            error: e.to_string(),
+            raw_response: Some(full_body.clone()),
+            parsed_output: None,
+        })?;
         let text = String::from_utf8_lossy(&chunk);
         buf.push_str(&text);
         full_body.push_str(&text);
@@ -286,4 +375,26 @@ async fn execute_inner(
         stream_events: events,
     };
     Ok((status, normalized.raw_body.clone(), normalized))
+}
+
+fn format_response_body(body: &str) -> String {
+    serde_json::from_str::<serde_json::Value>(body)
+        .ok()
+        .and_then(|value| serde_json::to_string_pretty(&value).ok())
+        .unwrap_or_else(|| body.to_string())
+}
+
+fn extract_error_message(body: &str) -> Option<String> {
+    let value = serde_json::from_str::<serde_json::Value>(body).ok()?;
+    value
+        .pointer("/error/message")
+        .and_then(|message| message.as_str())
+        .or_else(|| value.get("message").and_then(|message| message.as_str()))
+        .or_else(|| value.get("detail").and_then(|detail| detail.as_str()))
+        .map(ToString::to_string)
+}
+
+fn extract_error_output(body: &str) -> Option<String> {
+    let value = serde_json::from_str::<serde_json::Value>(body).ok()?;
+    extract_error_message(body).or_else(|| serde_json::to_string_pretty(&value).ok())
 }
