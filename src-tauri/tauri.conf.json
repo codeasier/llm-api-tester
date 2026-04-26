@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/nicegui/tauri-v2-schema/main/schema.json",
   "productName": "LLM API Tester",
   "version": "0.1.0",
-  "identifier": "com.llm-api-tester.app",
+  "identifier": "com.llm-api-tester.desktop",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
