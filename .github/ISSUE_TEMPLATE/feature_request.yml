@@ -1,0 +1,66 @@
+name: Feature request
+description: Propose an improvement to the product workflow or developer experience.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What user or developer problem does this address?
+    validations:
+      required: true
+  - type: dropdown
+    id: product_area
+    attributes:
+      label: Product area
+      options:
+        - Workspace
+        - Matrix
+        - History
+        - Settings
+        - Report export
+        - Provider management
+        - Protocol support
+        - Build / release workflow
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Affected layer
+      options:
+        - Frontend only
+        - Backend only
+        - Both frontend and backend
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: User workflow or use case
+      description: Describe how someone would use this feature.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List the conditions that would make this request done.
+      placeholder: |
+        - User can ...
+        - Validation shows ...
+        - History records ...
+    validations:
+      required: true
