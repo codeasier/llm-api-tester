@@ -1,0 +1,32 @@
+name: PR linked issue
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+
+jobs:
+  validate-linked-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR body references an issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request?.body || "";
+            const patterns = [
+              /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#\d+\b/i,
+              /\brefs\s+#\d+\b/i,
+              /\brelated\s+to\s+#\d+\b/i,
+            ];
+
+            const matched = patterns.some((pattern) => pattern.test(body));
+
+            if (!matched) {
+              core.setFailed(
+                "PR must reference at least one issue in the description, for example: 'Closes #123' or 'Refs #123'."
+              );
+            }

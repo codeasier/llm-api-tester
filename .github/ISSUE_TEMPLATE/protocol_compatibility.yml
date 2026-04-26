@@ -1,0 +1,82 @@
+name: Protocol compatibility issue
+description: Report request/response incompatibilities for provider APIs and protocol adapters.
+title: "[Compatibility] "
+labels:
+  - compatibility
+body:
+  - type: input
+    id: provider
+    attributes:
+      label: Provider name
+      placeholder: OpenAI-compatible gateway / Anthropic / custom vendor
+    validations:
+      required: true
+  - type: input
+    id: base_url
+    attributes:
+      label: Base URL
+      placeholder: https://api.example.com
+    validations:
+      required: true
+  - type: dropdown
+    id: protocol
+    attributes:
+      label: Protocol
+      options:
+        - OpenAI Chat Completions
+        - OpenAI Responses
+        - Anthropic Messages
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model ID
+      placeholder: gpt-4.1-mini / claude-sonnet-4-6 / custom-model
+    validations:
+      required: true
+  - type: dropdown
+    id: request_type
+    attributes:
+      label: Request type
+      options:
+        - Non-streaming
+        - Streaming
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected compatibility behavior
+      description: Describe what the app should accept, normalize, or validate.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual response or incompatibility
+      description: Include mismatched schema, event format, or validation output.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Raw error, payload snippet, or response shape
+      render: json
+    validations:
+      required: true
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: Reproducible with a saved test case?
+      options:
+        - "Yes"
+        - "No"
+        - Not tested
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Mention provider quirks, normalization ideas, or related reports.

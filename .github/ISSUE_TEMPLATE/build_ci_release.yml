@@ -1,0 +1,60 @@
+name: Build / CI / release issue
+description: Report failures in local build, CI, packaging, or release workflows.
+title: "[Build] "
+labels:
+  - ci
+body:
+  - type: dropdown
+    id: failure_type
+    attributes:
+      label: Failure type
+      options:
+        - GitHub Actions CI
+        - Local verification
+        - Tauri packaging
+        - Release artifact
+        - Signing / notarization follow-up
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - GitHub Actions Ubuntu
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command or workflow
+      placeholder: pnpm run verify / pnpm run build:macos / CI workflow name
+    validations:
+      required: true
+  - type: textarea
+    id: error_output
+    attributes:
+      label: Error output
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected outcome
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Include environment details, recent changes, or links to failed runs.

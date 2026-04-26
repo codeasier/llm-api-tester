@@ -1,0 +1,94 @@
+name: Bug report
+description: Report a defect in the app UI, backend behavior, or request execution.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue. Please provide enough detail for us to reproduce it.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Briefly describe the problem.
+      placeholder: The workspace request panel stops rendering after switching providers.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Frontend (React/TypeScript)
+        - Backend (Rust/Tauri)
+        - Protocol adapters
+        - Database / history / export
+        - Settings / provider config
+        - Build / release
+    validations:
+      required: true
+  - type: dropdown
+    id: protocol
+    attributes:
+      label: Protocol involved
+      options:
+        - OpenAI Chat Completions
+        - OpenAI Responses
+        - Anthropic Messages
+        - Not protocol-specific
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version or commit
+      placeholder: v0.1.0 or baf21fc
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Workspace
+        2. Select provider ...
+        3. Submit request ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, screenshots, or response snippets
+      description: Paste any relevant logs, stack traces, screenshots, or API responses.
+      render: shell
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Regression?
+      options:
+        - "Yes"
+        - "No"
+        - Unsure
